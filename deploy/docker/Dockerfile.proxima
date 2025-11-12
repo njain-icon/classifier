@@ -1,0 +1,34 @@
+# Use the base image
+FROM python:3.11
+
+# Set up the working directory
+RUN mkdir -p /opt/pebblo /opt/.pebblo /opt/pebblo/log /opt/pebblo/config
+
+WORKDIR /opt/pebblo
+
+# Install necessary system packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential gcc python3-dev weasyprint && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the application source code
+COPY pebblo /opt/pebblo/pebblo
+COPY pyproject.toml /opt/pebblo/pyproject.toml
+COPY deploy/docker/config.yaml /opt/pebblo/config/config.yaml
+COPY pebblo/topic_classifier/prompts/prompt_injection_prompts.json /opt/pebblo/prompt_injection_prompts.json
+# Copy pebblo_config directory with entity YAML files
+COPY pebblo/entity_classifier_2/pebblo_config /opt/pebblo/pebblo/entity_classifier_2/pebblo_config
+
+# Install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install weasyprint build && \
+    python -m build --wheel && \
+    pip install dist/*.whl
+
+# Verify installation
+RUN ls -l /usr/local/lib/python3.11/site-packages
+
+# Set the entrypoint and command
+ENTRYPOINT ["pebblo"]
+CMD ["--config", "/opt/pebblo/config/config.yaml"]

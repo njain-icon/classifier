@@ -1,0 +1,14 @@
+daemon:
+  port: 9000
+  host: 0.0.0.0
+logging:
+  level: info
+reports:
+  format: pdf
+  renderer: weasyprint
+  cacheDir: /opt/.pebblo
+  anonymizeSnippets: False
+classifier:
+  mode: all
+storage:
+  type: file

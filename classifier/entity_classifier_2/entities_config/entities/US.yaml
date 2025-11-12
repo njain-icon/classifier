@@ -1,0 +1,221 @@
+country: "US"
+
+use_presidio_defaults: true
+
+
+enhancer:
+  similarity_factor: 0.35
+  min_score_with_context: 0.4
+
+llm:
+  detection:
+    compose: [role, instructions, entities_doc, extraction_rules, cot, output_json_schema, reflection]
+    role: |
+      You are a highly accurate Named Entity Recognition (NER) extractor.
+    instructions: |
+      You MUST:
+      - Follow the output JSON schema exactly
+      - Preserve key names, casing, and order exactly as given
+      - Always include all keys, even if empty (use `""`)
+      - Extract ONLY if context keywords are present
+      - Do NOT guess or hallucinate entities
+      - Output valid JSON only; no commentary or extra text
+    entities_doc: |
+      {entities_doc}
+    extraction_rules: |
+      - Extract entities ONLY if context clues are present
+      - Do NOT guess or invent any entity
+      - Preserve original formatting exactly
+      - Do NOT split multi-word entities (e.g., 'John Doe' stays together)
+      - **SPECIAL RULE for DATE_OF_BIRTH:** Dates are extremely common in text. Only extract as DATE_OF_BIRTH if you see explicit birth-related keywords like "born", "DOB", "birthday", "date of birth". Generic dates like "Date:", "Created on", "Meeting date" are NEVER birth dates.
+      - **SPECIAL RULE for MEDICAL_RECORD_NUMBER, HEALTH_INSURANCE_NUMBER, and VIN:** Extract these only when their medical/insurance/vehicle context indicators appear. Do not extract standalone numeric/alphanumeric sequences without supporting context.
+    cot: |
+      ## Step-by-Step Extraction Procedure
+      1. Identify all potential entity spans in the sentence
+      2. For each entity type, check if context keywords exist
+      3. Keep only entities that match the definition AND context
+      4. Fill the output JSON schema exactly, using `[""]` for empty categories
+      5. Double-check order, key names, and formatting before output
+    output_json_schema: |
+      # Below is the list of Entities to extract
+      {output_json_schema}
+    reflection: |
+      ## Reflection Process
+      Before providing your final JSON output, take a moment to reflect on your analysis:
+
+      **Think through these questions:**
+      - Have I identified all potential entities in the text?
+      - Does each extracted entity have clear context indicators?
+      - Am I following the exact JSON schema format?
+      - Have I avoided extracting entities without proper context?
+      - Are there any ambiguous cases that need careful consideration?
+      **SPECIAL RULE for MEDICAL_RECORD_NUMBER, HEALTH_INSURANCE_NUMBER, and VIN:** Extract these only when their medical/insurance/vehicle context indicators appear. Do not extract standalone numeric/alphanumeric sequences without supporting context.
+
+      **Reflection Steps:**
+      1. **Scan the text** - Look for any patterns that might indicate entities
+      2. **Verify context** - Ensure each potential entity has supporting context keywords
+      3. **Check format** - Confirm the entity matches the expected format for its type
+      4. **Validate extraction** - Double-check that you're not hallucinating or guessing
+      5. **Review schema** - Ensure all keys are present in the correct order
+
+      **Important:** Take your time to think through this carefully step by step. Accuracy is more important than speed. 
+
+      ## Your Task
+      Identify the entities in the text based on above instructions and return the JSON response in the required format. 
+      It is important that you only identify an entity if there are relevant keyword present.
+
+
+entities:
+
+  US_SSN:
+    group: "pii-identification"
+    return_name: "us-ssn"
+    enabled: true
+    context_indicators: ["ssn", "social security", "taxpayer id", "social security number"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin", "llm"]
+      builtin_names: ["US_SSN"]
+      thresholds:
+        min_confidence: 0.6
+    validate_fn: "validate_us_ssn"
+    llm:
+      output_key: "SSN"
+      description: "US Social Security Number (9 digits, may include hyphens)."
+      notes: "Only extract with explicit SSN context. US format; 9 digits; hyphens optional."
+      examples: ["123-45-6789", "123456789"]
+      detection:
+        system: |
+          Detect US SSN only with clear context (SSN, social security) and valid US format.
+          Return JSON with key "us-ssn" only; no other keys.
+        user_template: |
+          TEXT: "{text}"
+          OUTPUT: {"us-ssn": []}
+      validation:
+        system: |
+          Validate US SSN: require nearby SSN keywords; reject generic 9-digit noise.
+        user_template: |
+          TEXT: "{text}"
+          ENTITIES: {entities_json}
+
+
+  US_DRIVER_LICENSE:
+    group: "pii-identification"
+    return_name: "us-drivers-license"
+    enabled: true
+    context_indicators: ["driver", "license", "dl", "driver's license"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin", "llm"]
+      builtin_names: ["US_DRIVER_LICENSE"]
+      thresholds:
+        min_confidence: 0.2
+    llm:
+      output_key: "DRIVER_LICENSE_NUMBER"
+      description: "US driver's license identifier (alphanumeric; format varies by state, 7–12 chars)."
+      notes: "Alphanumeric 7–12 chars; require explicit driver's license context."
+      examples: ["DL123456789", "A1234567"]
+      detection:
+        system: |
+          Detect US driver's license when nearby context mentions 'driver', 'license', 'DL'.
+          Return JSON with key "us-drivers-license" only.
+        user_template: |
+          TEXT: "{text}"
+          OUTPUT: {"us-drivers-license": []}
+      validation:
+        system: |
+          Validate as US driver's license if context is present and alphanumeric 7–12 chars.
+        user_template: |
+          TEXT: "{text}"
+          ENTITIES: {entities_json}
+
+  US_BANK_NUMBER:
+    group: "pii-financial"
+    return_name: "us-bank-account-number"
+    enabled: true
+    context_indicators: ["bank account", "account number", "checking", "savings"]
+    validate_fn: "validate_bank_account_number"
+    compliance_tags: []
+    detect:
+      methods: ["builtin", "llm"]
+      thresholds:
+        min_confidence: 0.6
+    llm:
+      output_key: "US_BANK_NUMBER"
+      description: "US bank account number (variable length; bank-dependent)."
+      notes: "U.S. bank account number; length varies by bank; require bank/account context."
+      examples: ["1234567890", "000123456789"]
+
+  ROUTING_NUMBER:
+    group: "pii-financial"
+    return_name: "bank-routing-number"
+    enabled: true
+    context_indicators: ["routing", "aba", "routing number"]
+    compliance_tags: []
+    detect:
+      methods: ["llm"]
+      thresholds:
+        min_confidence: 0.6
+    llm:
+      output_key: "BANK_ROUTING_NUMBER"
+      description: "US bank routing (ABA) number (9 digits)."
+      notes: "9-digit U.S. bank routing (ABA) number; require routing context."
+      examples: ["123456789"]
+
+  EMAIL_ADDRESS:
+    group: "pii-contact"
+    return_name: "email-address"
+    enabled: true
+    context_indicators: ["email", "contact", "email address", "contact email"]
+    compliance_tags: []
+    validate_fn: "validate_email"
+    detect:
+      methods: ["builtin", "llm"]
+      builtin_names: ["EMAIL_ADDRESS"]
+      thresholds:
+        min_confidence: 0.6
+    llm:
+      output_key: "EMAIL"
+      description: "Valid email address."
+      notes:
+        - Must follow standard email format with '@'.
+      examples: ["john.doe@example.com", "contact@company.com", "user123@gmail.com"]
+
+  PHONE_NUMBER:
+    group: "pii-contact"
+    return_name: "phone-number"
+    enabled: true
+    context_indicators: ["phone", "call", "contact", "mobile", "cell", "telephone", "reach at"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin", "llm"]
+      builtin_names: ["PHONE_NUMBER"]
+      thresholds:
+        min_confidence: 0.6
+    llm:
+      output_key: "PHONE_NUMBER"
+      description: "Valid phone number in various formats."
+      notes: "Supports various formats; include country codes and separators (spaces, dashes, parentheses)."
+      examples: ["+1-555-123-4567", "(555) 123-4567", "555.123.4567"]
+
+  DATE_OF_BIRTH:
+    group: "pii-identification"
+    return_name: "date-of-birth"
+    enabled: true
+    context_indicators: ["born on", "DOB", "date of birth", "birthday", "age", "born", "birth date", "born in"]
+    compliance_tags: []
+    validate_fn: "validate_date_of_birth"
+    detect:
+      methods: ["llm"]
+      thresholds:
+        min_confidence: 0.6
+    llm:
+      output_key: "DATE_OF_BIRTH"
+      description: "Date when a person was born."
+      examples: ["1990-05-15", "May 15, 1990", "15/05/1990", "born in 1990"]
+      notes:
+        - "Check the context carefully if only Date keyword is present, don't extract it as date of birth. If keywords like dob, date of birth etc are present, then extract it as date of birth."
+        - "CRITICAL WARNING: NEVER extract a date as DATE_OF_BIRTH unless you see explicit birth-related context. Common false positives to avoid: Date:, Created on, Meeting date, Expiry date, Date of issue. ONLY extract when you see: born on, DOB, date of birth, birthday, born in [year], age [X] years old."
+
+  
+

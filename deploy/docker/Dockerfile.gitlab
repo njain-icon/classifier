@@ -1,0 +1,33 @@
+ARG build_image=python:3.11
+ARG base_image=python:3.11
+ARG pebblo_branch=daxa-main
+
+FROM --platform=$BUILDPLATFORM $build_image AS base
+
+RUN mkdir /opt/pebblo && apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    git
+
+WORKDIR /opt/pebblo
+
+RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+
+RUN --mount=type=ssh git clone git@gitlab.com:c7210/eng/opensource/pebblo.git /opt/pebblo
+
+RUN pip install weasyprint build && python -m build --wheel && pip install dist/*.whl
+
+# Stage 2
+FROM --platform=$BUILDPLATFORM $base_image
+
+RUN mkdir /opt/pebblo /opt/.pebblo /opt/pebblo/log /opt/pebblo/config 
+
+WORKDIR /opt/pebblo
+
+COPY --from=base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=base /usr/local/bin/pebblo /usr/local/bin/pebblo
+COPY deploy/docker/config.yaml /opt/pebblo/config/config.yaml
+COPY deploy/docker/aws_creds.env /opt/pebblo/config/aws_creds.env
+
+ENTRYPOINT ["pebblo"]
+CMD ["--config", "/opt/pebblo/config/config.yaml"]
