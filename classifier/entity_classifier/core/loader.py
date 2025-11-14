@@ -15,7 +15,6 @@ def _default_entities_dir() -> Path:
     # Prefer env override; else try repo-root/pebblo_config/entities
     override = os.getenv("PEBBLO_CONFIG_DIR")
     # Path of the current file
-    logger
     CURRENT_DIR = Path(__file__).resolve().parent.parent
     if override:
         return Path(override)
