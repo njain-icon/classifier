@@ -5,22 +5,22 @@ from typing import List, Optional, Tuple
 from presidio_anonymizer import AnonymizerEngine
 from presidio_analyzer import RecognizerResult
 
-from classifier.entity_classifier_2.utils.judge_entity import judge_results
-from classifier.entity_classifier_2.utils.result_validation import validate_extracted_data, is_not_part_of_decimal
+from classifier.entity_classifier.utils.judge_entity import judge_results
+from classifier.entity_classifier.utils.result_validation import validate_extracted_data, is_not_part_of_decimal
 # Note: legacy get_entities not used in YAML-driven v2 aggregation
 from classifier.log import get_logger
 from classifier.text_generation.text_generation import TextGeneration
 
-from classifier.entity_classifier_2.core.loader import load_country_config
-from classifier.entity_classifier_2.core.validation import ValidationProvider
-from classifier.entity_classifier_2.engine.analyzer_factory import build_country_recognizer, build_engine_from_configs
+from classifier.entity_classifier.core.loader import load_country_config
+from classifier.entity_classifier.core.validation import ValidationProvider
+from classifier.entity_classifier.engine.analyzer_factory import build_country_recognizer, build_engine_from_configs
 
 
 
 logger = get_logger(__name__)
 
 
-class EntityClassifierV2:
+class EntityClassifier:
     """YAML-driven entity classifier.
 
     - Uses YAML configs and `BaseCountryAnalyzer` for detection (Presidio builtin+regex + LLM detect/validate)
@@ -295,9 +295,9 @@ class EntityClassifierV2:
             entity_details.setdefault(mapped_entity, []).append(detail)
         return entity_details
     
-    def presidio_entity_classifier_and_anonymizer(
+    def entity_classifier_and_anonymizer(
         self, input_text: str, anonymize_snippets: bool = False
-    ) -> (dict, int, str, dict, dict):
+    ) -> (dict, str):
         """Main entry point returning aggregated entities, counts, and optional anonymized text.
 
         Args:

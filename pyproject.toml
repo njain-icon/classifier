@@ -155,7 +155,13 @@ classifier = "classifier.app.daemon:start"
 # Use find directive to automatically discover all subpackages
 # This prevents setuptools from including unwanted directories like evals, myenv, deploy
 packages = {find = {exclude = ["evals*", "myenv*", "deploy*", "build*", "dist*", "*.egg-info*"]}}
-include-package-data = false
+include-package-data = true
+
+# Ensure YAML/data files inside the package are included in the wheel/sdist
+[tool.setuptools.package-data]
+"classifier" = [
+  "entity_classifier/entities_config/**"
+]
 
 [build-system]
 # These are the assumed default build requirements from pip:

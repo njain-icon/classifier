@@ -109,7 +109,7 @@ entities:
       methods: ["builtin", "llm"]
       builtin_names: ["US_DRIVER_LICENSE"]
       thresholds:
-        min_confidence: 0.2
+        min_confidence: 0.6
     llm:
       output_key: "DRIVER_LICENSE_NUMBER"
       description: "US driver's license identifier (alphanumeric; format varies by state, 7–12 chars)."

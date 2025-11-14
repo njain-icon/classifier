@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from classifier.entity_classifier_2.core.config import CountryConfig, EntityConfig, LLMTemplate
+from classifier.entity_classifier.core.config import CountryConfig, EntityConfig, LLMTemplate
 
 
 class PromptProvider:

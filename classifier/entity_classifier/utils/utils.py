@@ -4,13 +4,13 @@ Copyright (c) 2024 Cloud Defense, Inc. All rights reserved.
 
 from presidio_analyzer import Pattern, PatternRecognizer, RecognizerRegistry
 
-from classifier.entity_classifier_2.utils.config import (
+from classifier.entity_classifier.utils.config import (
     ConfidenceScore,
     Entities,
     SecretEntities,
     secret_entities_context_mapping,
 )
-from classifier.entity_classifier_2.utils.regex_pattern import regex_secrets_patterns
+from classifier.entity_classifier.utils.regex_pattern import regex_secrets_patterns
 
 
 

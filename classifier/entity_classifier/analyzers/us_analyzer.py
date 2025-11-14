@@ -1,13 +1,13 @@
 import re
 from typing import List
 
-from classifier.entity_classifier_2.core.config import CountryConfig
-from classifier.entity_classifier_2.core.prompts import PromptProvider
+from classifier.entity_classifier.core.config import CountryConfig
+from classifier.entity_classifier.core.prompts import PromptProvider
 from classifier.text_generation.text_generation import TextGeneration
-from classifier.entity_classifier_2.analyzers.base_analyzer import BaseCountryAnalyzer
-from classifier.entity_classifier_2.core.validation import ValidationProvider
+from classifier.entity_classifier.analyzers.base_analyzer import BaseCountryAnalyzer
+from classifier.entity_classifier.core.validation import ValidationProvider
 from classifier.log import get_logger
-from classifier.entity_classifier_2.core.utils import is_valid_numeric_field, has_consecutive_increasing_numbers, has_consecutive_decreasing_numbers, has_consecutive_repetitive_numbers
+from classifier.entity_classifier.core.utils import is_valid_numeric_field, has_consecutive_increasing_numbers, has_consecutive_decreasing_numbers, has_consecutive_repetitive_numbers
 from stdnum.us import ssn
 from dateutil.parser import parse
 

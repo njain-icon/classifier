@@ -5,12 +5,12 @@ from typing import List, Tuple, Set, Optional
 
 from presidio_analyzer import EntityRecognizer, Pattern, RecognizerResult, AnalyzerEngine
 
-from classifier.entity_classifier_2.core.config import CountryConfig
-from classifier.entity_classifier_2.core.prompts import PromptProvider
-from classifier.entity_classifier_2.engine.span_resolver import map_values_to_spans
+from classifier.entity_classifier.core.config import CountryConfig
+from classifier.entity_classifier.core.prompts import PromptProvider
+from classifier.entity_classifier.engine.span_resolver import map_values_to_spans
 from classifier.text_generation.text_generation import TextGeneration
 from classifier.log import get_logger
-from classifier.entity_classifier_2.core.validation import ValidationProvider
+from classifier.entity_classifier.core.validation import ValidationProvider
 
 
 logger = get_logger(__name__)

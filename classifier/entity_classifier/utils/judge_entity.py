@@ -1,7 +1,7 @@
 import ast
 
 
-from classifier.entity_classifier_2.utils.prompt_lib import get_judge_prompt
+from classifier.entity_classifier.utils.prompt_lib import get_judge_prompt
 from classifier.log import get_logger
 logger = get_logger(__name__)
 

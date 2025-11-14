@@ -26,6 +26,7 @@ htmlcov/
 .hypothesis/
 
 # Virtual environments
+myenv/
 venv/
 env/
 .venv/

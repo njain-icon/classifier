@@ -5,10 +5,10 @@ from typing import List, Tuple
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry, PatternRecognizer, Pattern
 from presidio_analyzer.context_aware_enhancers import LemmaContextAwareEnhancer
 
-from classifier.entity_classifier_2.core.config import CountryConfig
-from classifier.entity_classifier_2.core.prompts import PromptProvider
-from classifier.entity_classifier_2.analyzers.base_analyzer import BaseCountryAnalyzer
-from classifier.entity_classifier_2.analyzers import COUNTRY_ANALYZERS
+from classifier.entity_classifier.core.config import CountryConfig
+from classifier.entity_classifier.core.prompts import PromptProvider
+from classifier.entity_classifier.analyzers.base_analyzer import BaseCountryAnalyzer
+from classifier.entity_classifier.analyzers import COUNTRY_ANALYZERS
 
 
 def build_engine_from_yaml(cfg: CountryConfig) -> AnalyzerEngine:

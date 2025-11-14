@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from classifier.app.models.models import ReqClassifier
 from classifier.app.models.models import ClassifierJsonResponse
 from classifier.app.models.models import AiDataModel
-from classifier.entity_classifier_2.entity_classifier import EntityClassifierV2
+from classifier.entity_classifier.entity_classifier import EntityClassifier
 from classifier.log import get_logger
 
 
@@ -39,8 +39,8 @@ class Classification:
             entityDetails={},
         )
         try:
-            entity_classifier_obj = EntityClassifierV2(req.country_list)
-            entity_details, input_text = entity_classifier_obj.presidio_entity_classifier_and_anonymizer(
+            entity_classifier_obj = EntityClassifier(req.country_list)
+            entity_details, input_text = entity_classifier_obj.entity_classifier_and_anonymizer(
                 req.text, anonymize_snippets=req.anonymize
             )
             

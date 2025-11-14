@@ -57,10 +57,10 @@ def start():
 def classifier_init(p_bar):
     """Initialize topic and entity classifier."""
     p_bar.write("Downloading entity classifier models ...")
-    from classifier.entity_classifier_2.entity_classifier import EntityClassifierV2
+    from classifier.entity_classifier.entity_classifier import EntityClassifier
 
     # Init EntityClassifier(This step downloads all necessary training models)
-    _ = EntityClassifierV2(countries=["US"])
+    _ = EntityClassifier(countries=["US"])
     p_bar.write("Initializing entity classifier ... done")
     p_bar.update(1)
 

@@ -9,7 +9,7 @@ Modules:
 - country_analyzer: Orchestrates Presidio + LLM + validation.
 """
 
-from classifier.entity_classifier_2.core.config import (
+from classifier.entity_classifier.core.config import (
     CountryConfig,
     EntityConfig,
     DetectConfig,
@@ -22,15 +22,15 @@ from classifier.entity_classifier_2.core.config import (
     EnhancerConfig,
     ValidateConfig,
 )
-from classifier.entity_classifier_2.core.loader import load_country_config
-from classifier.entity_classifier_2.core.prompts import PromptProvider
-from classifier.entity_classifier_2.entity_classifier import EntityClassifierV2
+from classifier.entity_classifier.core.loader import load_country_config
+from classifier.entity_classifier.core.prompts import PromptProvider
+from classifier.entity_classifier.entity_classifier import EntityClassifier
 
 __all__ = [
     "load_country_config",
     "PromptProvider",
     "AnalyzerPool",
-    "EntityClassifierV2",
+    "EntityClassifier",
 ]
 
 

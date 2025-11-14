@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-from classifier.entity_classifier_2.core.config import CountryConfig
+from classifier.entity_classifier.core.config import CountryConfig
 
 
 def map_values_to_spans(det_raw: Dict[str, List[str]], text: str, cfg: CountryConfig) -> List[Tuple[str, int, int]]:
