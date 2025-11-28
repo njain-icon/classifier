@@ -112,8 +112,8 @@ dependencies = [
   "python-multipart==0.0.17",
   "python-stdnum==1.20",
   "luhnchecker==0.0.12",
-  "langchain==1.1.0",
-  "langchain-core==1.1.0",
+  "langchain==0.3.27",
+  "langchain-core==0.3.79",
   "backoff>=2.2.1"  # Added for exponential backoff retry logic
 ]
 
