@@ -12,6 +12,13 @@ class Entities(Enum):
     DATE_OF_BIRTH = "date-of-birth"
     US_BANK_NUMBER = "us-bank-account-number"
     ROUTING_NUMBER = "bank-routing-number"
+    SERVICE_NUMBER = "service-number"
+    DOD_ID = "dodi-number"
+    VA_CLAIM_NUMBER = "va-claim-number"
+    BUSINESS_TAX_ID = "business-tax-id"
+    MEDICAL_LICENSE = "medical-license-number"
+    EMPLOYEE_ID = "employee-id"
+
 
 
 class ConfidenceScore(Enum):
