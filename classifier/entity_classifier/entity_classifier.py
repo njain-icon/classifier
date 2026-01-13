@@ -1,21 +1,22 @@
 from __future__ import annotations
-
 from typing import List, Optional, Tuple
-
 from presidio_anonymizer import AnonymizerEngine
 from presidio_analyzer import RecognizerResult
-
 from classifier.entity_classifier.utils.judge_entity import judge_results
 from classifier.entity_classifier.utils.result_validation import validate_extracted_data, is_not_part_of_decimal
 # Note: legacy get_entities not used in YAML-driven v2 aggregation
 from classifier.log import get_logger
 from classifier.text_generation.text_generation import TextGeneration
-
 from classifier.entity_classifier.core.loader import load_country_config
 from classifier.entity_classifier.core.validation import ValidationProvider
 from classifier.entity_classifier.engine.analyzer_factory import build_country_recognizer, build_engine_from_configs
-
-
+from classifier.entity_classifier.analyzers.dob_analyzer import DobRecognizer
+from classifier.entity_classifier.analyzers.service_analyser import ServiceNumberRecognizer
+from classifier.entity_classifier.analyzers.dod_analyser import  DoDIdRecognizer
+from classifier.entity_classifier.analyzers.claim_number_analyser import VaClaimNumberRecognizer
+from classifier.entity_classifier.analyzers.business_tax_analyser import BusinessTaxIdRecognizer
+from classifier.entity_classifier.analyzers.medical_recogniser import MedicalLicenseRecognizer
+from classifier.entity_classifier.analyzers.employee_analyser import EmployeeIdRecognizer
 
 logger = get_logger(__name__)
 
@@ -41,6 +42,7 @@ class EntityClassifier:
         self._target_entities: set[str] = set()
         self._validator_index: dict[str, dict] = {}
         self._validator = ValidationProvider()
+        self.use_llm=False
         
         # Analyzer will be created in custom_analyze with a clean registry (no predefined recognizers)
         self._base_dir = None
@@ -67,7 +69,16 @@ class EntityClassifier:
             try:
                 cfg = load_country_config(country, base_dir=self._base_dir)
                 recognizer = build_country_recognizer(cfg)
+
                 self.analyzer.registry.add_recognizer(recognizer)
+                self.analyzer.registry.add_recognizer(DobRecognizer())
+                self.analyzer.registry.add_recognizer(ServiceNumberRecognizer())
+                self.analyzer.registry.add_recognizer(DoDIdRecognizer())
+                self.analyzer.registry.add_recognizer(VaClaimNumberRecognizer())
+                self.analyzer.registry.add_recognizer(BusinessTaxIdRecognizer())
+                self.analyzer.registry.add_recognizer(MedicalLicenseRecognizer())
+                self.analyzer.registry.add_recognizer(EmployeeIdRecognizer())
+
                 # Track enabled YAML entity ids to restrict analyze targets
                 for ent_id, ent in (cfg.entities or {}).items():
                     if ent.enabled and ent.detect and any(m in ent.detect.methods for m in ("regex", "llm")):
@@ -94,6 +105,8 @@ class EntityClassifier:
             except Exception as e:
                 logger.warning(f"Failed to register country recognizer for {country}: {e}")
 
+
+
     def analyze_response(
         self, input_text: str, anonymize_all_entities: bool = True
     ) -> list[RecognizerResult]:
@@ -116,11 +129,10 @@ class EntityClassifier:
         analyzer_results = self.analyzer.analyze(text=input_text, language="en")
         logger.info(f"analyzer_results {analyzer_results}")
         # Initialize outputs
-        non_overlapping_results: List[RecognizerResult] = []
-        overlapping_results: List[Tuple[RecognizerResult, ...]] = []
         current_overlap_group: List[RecognizerResult] = []
         # Sort entities by start position
         sorted_analyzer_results = sorted(analyzer_results, key=lambda x: x.start)
+        logger.info("This is my sorted_analyser",sorted_analyzer_results)
         for entity in sorted_analyzer_results:
             try:
                 if is_not_part_of_decimal(entity.entity_type, input_text, entity.start, entity.end):
@@ -146,36 +158,14 @@ class EntityClassifier:
                         and validate_extracted_data(entity.entity_type, value, input_text)
                         and yaml_valid
                     ):
-                        if current_overlap_group and self.entities_overlap(
-                            current_overlap_group[-1], entity
-                        ):
-                            last_entity = current_overlap_group[-1]
-                            if last_entity.entity_type == entity.entity_type:
-                                non_overlapping_results.append(entity)
-                            else:
-                                current_overlap_group.append(entity)
-                        else:
-                            if len(current_overlap_group) > 1:
-                                overlapping_results.append(tuple(current_overlap_group))
-                            elif len(current_overlap_group) == 1:
-                                non_overlapping_results.append(current_overlap_group[0])
-                            current_overlap_group = [entity]
+                        current_overlap_group.append(entity)
             except Exception as ex:
                 import traceback
                 logger.warning(
                     f"Error in analyze_response in entity classification v2. {str(ex)}"
                 )
                 logger.warning(traceback.format_exc())
-
-        if len(current_overlap_group) > 1:
-            overlapping_results.append(tuple(current_overlap_group))
-        elif len(current_overlap_group) == 1:
-            non_overlapping_results.append(current_overlap_group[0])
-        overlapping_results_new = judge_results(
-            input_text, overlapping_results, self.text_gen_obj
-        )
-        non_overlapping_results.extend(overlapping_results_new)
-        return list(set(non_overlapping_results))
+        return current_overlap_group
 
     def anonymize_response(
         self, analyzer_results: list, input_text: str
@@ -295,6 +285,7 @@ class EntityClassifier:
             entity_details.setdefault(mapped_entity, []).append(detail)
         return entity_details
     
+    
     def entity_classifier_and_anonymizer(
         self, input_text: str, anonymize_snippets: bool = False
     ) -> (dict, str):
@@ -316,6 +307,7 @@ class EntityClassifier:
             logger.debug("Presidio Entity Classifier and Anonymizer V2 Started.")
 
             analyzer_results = self.analyze_response(input_text)
+            
             if anonymize_snippets:
                 anonymized_response, anonymized_text = self.anonymize_response(
                     analyzer_results
@@ -324,12 +316,12 @@ class EntityClassifier:
                 entities_response = self.get_analyzed_entities_response(
                     analyzer_results, anonymized_response, input_text
                 )
+                logger.info("this is my entities_response->",entities_response)
             else:
                 entities_response = self.get_analyzed_entities_response(
                     analyzer_results, None,input_text
 
                 )
-
             entity_details = self._aggregate_entities_yaml(entities_response)
 
             return entity_details, input_text

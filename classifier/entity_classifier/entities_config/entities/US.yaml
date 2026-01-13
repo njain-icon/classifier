@@ -206,7 +206,7 @@ entities:
     compliance_tags: []
     validate_fn: "validate_date_of_birth"
     detect:
-      methods: ["llm"]
+      methods: ["builtin"]
       thresholds:
         min_confidence: 0.6
     llm:
@@ -216,6 +216,93 @@ entities:
       notes:
         - "Check the context carefully if only Date keyword is present, don't extract it as date of birth. If keywords like dob, date of birth etc are present, then extract it as date of birth."
         - "CRITICAL WARNING: NEVER extract a date as DATE_OF_BIRTH unless you see explicit birth-related context. Common false positives to avoid: Date:, Created on, Meeting date, Expiry date, Date of issue. ONLY extract when you see: born on, DOB, date of birth, birthday, born in [year], age [X] years old."
+
+
+  SERVICE_NUMBER:
+    group: "pii-identification"
+    return_name: "service-number"
+    enabled: true
+    context_indicators: ["service number", "sn", "military id", "service id"]
+    compliance_tags: []
+    # validate_fn: "validate_date_of_birth"
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+  DOD_ID:
+    group: "pii-identification"
+    return_name: "dodi-number"
+    enabled: true
+    context_indicators: ["dod id", "department of defense", "military id", "dod number"]
+    compliance_tags: []
+    # validate_fn: "validate_date_of_birth"
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+  VA_CLAIM_NUMBER:
+    group: "pii-identification"
+    return_name: "va-claim-number"
+    enabled: true
+    context_indicators: ["va claim","va claim number","claim number","va file number","va file no","claim #","va benefits","veterans affairs"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+  BUSINESS_TAX_ID:
+    group: "pii-identification"
+    return_name: "business-tax-id"
+    enabled: true
+    context_indicators: ["ein","tax id","tax identification","business tax","practice tax","employer identification","irs"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+  MEDICAL_LICENSE:
+    group: "pii-identification"
+    return_name: "medical-license-number"
+    enabled: true
+    context_indicators: ["medical license","license number","doctor license","physician license","medical registration"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+
+  EMPLOYEE_ID:
+    group: "pii-identification"
+    return_name: "employee-id"
+    enabled: true
+    context_indicators: ["employee id","employee code","staff id","staff code","employee number","staff number","hr id","personnel id","payroll id","Employee ID Number"]
+    compliance_tags: []
+    detect:
+      methods: ["builtin"]
+      thresholds:
+        min_confidence: 0.6
+
+  
+
+
+  
+
+
+  
+  
+  
+
+    
+
+  
+  
+
+  
 
   
 
